@@ -1,0 +1,14 @@
+{
+  "name": "bagastopati/ui-core",
+  "description": "Standalone PHP UI Builder",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "BagasTopati\\UiCore\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=8.1"
+  }
+}
