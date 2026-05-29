@@ -218,6 +218,11 @@ class DefaultFramework implements CssFramework
         return ['ui-btn', "ui-btn-" . ($variant ?? 'primary')];
     }
 
+    public function buttonSpacing(): array
+    {
+        return ['ui-btn-spacing'];
+    }
+
     public function navbar(?string $variant): array
     {
         $classes = ['ui-navbar'];

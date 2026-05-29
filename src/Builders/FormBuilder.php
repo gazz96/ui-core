@@ -266,13 +266,14 @@ class FormBuilder implements Renderable
         if ($field['type'] === 'submit' || $field['type'] === 'reset') {
             $btnClasses = array_merge(
                 $field['type'] === 'submit' ? $fw->buttonPrimary() : $fw->buttonSecondary(),
+                $fw->buttonSpacing(),
                 $field['classes'] ?? []
             );
             return "<button type='{$field['type']}'" . Renderer::classes($btnClasses) . ">{$field['label']}</button>";
         }
 
         if ($field['type'] === 'button') {
-            $btnClasses = array_merge($fw->button('secondary'), $field['classes'] ?? []);
+            $btnClasses = array_merge($fw->button('secondary'), $fw->buttonSpacing(), $field['classes'] ?? []);
             $btnType = $field['button_type'] ?? 'button';
             return "<button type='{$btnType}'" . Renderer::classes($btnClasses) . ">{$field['label']}</button>";
         }

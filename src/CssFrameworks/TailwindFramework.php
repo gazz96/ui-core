@@ -232,6 +232,11 @@ class TailwindFramework implements CssFramework
         };
     }
 
+    public function buttonSpacing(): array
+    {
+        return ['mr-3'];
+    }
+
     public function navbar(?string $variant): array
     {
         $base = ['flex', 'items-center', 'justify-between', 'px-6', 'py-3', 'shadow-sm', 'sticky', 'top-0', 'z-50'];

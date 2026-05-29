@@ -215,6 +215,11 @@ class Bootstrap5Framework implements CssFramework
         return ['btn', "btn-{$this->bsVariant($variant)}"];
     }
 
+    public function buttonSpacing(): array
+    {
+        return ['me-2'];
+    }
+
     public function navbar(?string $variant): array
     {
         $classes = ['navbar', 'navbar-expand-lg'];
