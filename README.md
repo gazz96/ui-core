@@ -17,7 +17,7 @@ A powerful and flexible Laravel package for creating HTML forms from array or JS
 ## Installation
 
 ```bash
-composer require bagastopati/form-builder
+composer require gazz96/form-builder
 ```
 
 Laravel will auto-register the service provider.

@@ -16,7 +16,7 @@ Panduan lengkap untuk menggunakan FormBuilder package.
 ## Instalasi
 
 ```bash
-composer require bagastopati/form-builder
+composer require gazz96/form-builder
 ```
 
 Laravel akan otomatis melakukan auto-discovery dan mendaftarkan service provider.

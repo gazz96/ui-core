@@ -1,5 +1,5 @@
 {
-  "name": "bagastopati/form-builder",
+  "name": "gazz96/form-builder",
   "description": "A powerful Laravel form builder that allows you to create forms from array or JSON configuration with support for multiple CSS frameworks (Bootstrap 4, Bootstrap 5, Tailwind CSS)",
   "type": "library",
   "license": "MIT",
@@ -11,12 +11,11 @@
     "tailwind",
     "html-form"
   ],
-  "homepage": "https://github.com/bagastopati/form-builder",
+  "homepage": "https://github.com/gazz96/form-builder",
   "authors": [
     {
-      "name": "Bagas Topati",
-      "email": "bagas.topati@gmail.com",
-      "homepage": "https://bagastopati.com"
+      "name": "Gazz96",
+      "email": "bagas.topati@gmail.com"
     }
   ],
   "require": {

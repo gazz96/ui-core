@@ -53,7 +53,7 @@ FormBuilder adalah Laravel package powerful untuk membuat HTML forms dari array 
 ### Via Composer
 
 ```bash
-composer require bagastopati/form-builder
+composer require gazz96/form-builder
 ```
 
 Laravel will auto-register the service provider.

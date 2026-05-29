@@ -1,13 +1,13 @@
 # Panduan Upload Package ke Packagist
 
-Panduan lengkap untuk upload `bagastopati/form-builder` package ke Packagist.
+Panduan lengkap untuk upload `gazz96/form-builder` package ke Packagist.
 
 ## ✅ Checklist Sebelum Upload
 
 Pastikan project sudah memenuhi semua requirement ini:
 
 - [x] **composer.json** - Sudah valid dan lengkap dengan:
-  - [x] name: `bagastopati/form-builder`
+  - [x] name: `gazz96/form-builder`
   - [x] description: Deskripsi yang jelas
   - [x] license: MIT
   - [x] authors: Informasi author
@@ -47,7 +47,7 @@ Pastikan project sudah memenuhi semua requirement ini:
 # https://github.com/new
 
 # Setelah create, copy repository ke local
-git remote add origin https://github.com/bagastopati/form-builder.git
+git remote add origin https://github.com/gazz96/form-builder.git
 git branch -M main
 git push -u origin main
 ```
@@ -59,7 +59,7 @@ git push -u origin main
 git remote -v
 
 # Update remote jika perlu
-git remote set-url origin https://github.com/bagastopati/form-builder.git
+git remote set-url origin https://github.com/gazz96/form-builder.git
 
 # Push semua commits
 git push -u origin main
@@ -85,7 +85,7 @@ Contoh token format: `ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 1. Go to https://packagist.org/
 2. Click "Sign Up" atau login dengan GitHub
 3. Fill form dengan:
-   - Username: `bagastopati` (atau sesuai preference)
+   - Username: `gazz96` (atau sesuai preference)
    - Email: `bagas.topati@gmail.com`
    - Password: Buat password yang kuat
 4. Verify email
@@ -107,7 +107,7 @@ Contoh token format: `ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 2. Click "Submit Package" atau di https://packagist.org/packages/submit
 3. Masukkan Repository URL:
    ```
-   https://github.com/bagastopati/form-builder.git
+   https://github.com/gazz96/form-builder.git
    ```
 4. Click "Check"
 5. Verify package details
@@ -122,7 +122,7 @@ Packagist akan:
 
 Setelah submit, package akan muncul di:
 ```
-https://packagist.org/packages/bagastopati/form-builder
+https://packagist.org/packages/gazz96/form-builder
 ```
 
 ### Step 5: Setup Auto-Update (Webhook)
@@ -149,22 +149,22 @@ GitHub akan mengirim notification ke Packagist setiap ada push.
 
 Jika webhook tidak berfungsi, bisa manual sync di Packagist:
 
-1. Go ke package page: https://packagist.org/packages/bagastopati/form-builder
+1. Go ke package page: https://packagist.org/packages/gazz96/form-builder
 2. Click "Force Update"
 3. Atau lewat API:
    ```bash
    curl -X POST https://packagist.org/api/update-package?username=USERNAME&apiToken=API_TOKEN \
-     -d '{"repository":"https://github.com/bagastopati/form-builder.git"}'
+     -d '{"repository":"https://github.com/gazz96/form-builder.git"}'
    ```
 
 ### Step 6: Test Installation
 
 ```bash
 # Test install dari Packagist (di folder project lain)
-composer create-project --prefer-dist bagastopati/form-builder my-project
+composer create-project --prefer-dist gazz96/form-builder my-project
 
 # Atau add ke existing project
-composer require bagastopati/form-builder
+composer require gazz96/form-builder
 ```
 
 ## 📋 Verifikasi Package di Packagist
@@ -173,14 +173,14 @@ Setelah upload, verify informasi package:
 
 ```bash
 # Check package info via API
-curl https://packagist.org/p/bagastopati/form-builder.json | jq '.'
+curl https://packagist.org/p/gazz96/form-builder.json | jq '.'
 
 # Or via web browser
-# https://packagist.org/packages/bagastopati/form-builder
+# https://packagist.org/packages/gazz96/form-builder
 ```
 
 **Informasi yang akan ditampilkan:**
-- Package name: bagastopati/form-builder
+- Package name: gazz96/form-builder
 - Latest version: v2.0.0
 - Description
 - Keywords
@@ -286,7 +286,7 @@ Solusi:
 
 ```bash
 # Via API
-curl https://packagist.org/p/bagastopati/form-builder.json | jq '.package.downloads'
+curl https://packagist.org/p/gazz96/form-builder.json | jq '.package.downloads'
 
 # Expected output
 {
@@ -383,7 +383,7 @@ git push origin main
 git push origin v2.1.0
 
 # 7. Verify on Packagist
-# https://packagist.org/packages/bagastopati/form-builder
+# https://packagist.org/packages/gazz96/form-builder
 # Check latest version muncul
 ```
 
@@ -410,7 +410,7 @@ git push origin v2.1.0
 Jika ada pertanyaan:
 1. Check Packagist docs: https://packagist.org/about
 2. Read Composer docs: https://getcomposer.org/
-3. Check GitHub discussions: https://github.com/bagastopati/form-builder/discussions
+3. Check GitHub discussions: https://github.com/gazz96/form-builder/discussions
 
 ---
 

@@ -40,7 +40,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Updated package name from `bagastopati/ui-core` to `bagastopati/form-builder`
+- Updated package name from `gazz96/ui-core` to `gazz96/form-builder`
 - Enhanced form configuration to support comprehensive field definitions
 - Improved form attribute handling for better HTML generation
 

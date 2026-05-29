@@ -183,7 +183,7 @@ test(validation): add tests for email validation rules
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/bagastopati/form-builder.git
+   git clone https://github.com/gazz96/form-builder.git
    cd form-builder
    ```
 
