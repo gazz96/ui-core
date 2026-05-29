@@ -172,4 +172,24 @@ trait HasFormConfiguration
     {
         return !is_null(config("form-builder.forms.{$formName}"));
     }
+
+    /**
+     * Get FormBuilder with data bound
+     *
+     * Convenience method that combines getFormBuilder() and bind()
+     *
+     * @param string $formName The form name
+     * @param object|array $data The data to bind (model, object, or array)
+     * @return \BagasTopati\UiCore\Builders\FormBuilder The FormBuilder instance with data bound
+     *
+     * @example
+     * $user = User::find(1);
+     * $form = $this->getFormBuilderWithData('user_edit', $user);
+     * // Form is ready to render with pre-populated values
+     */
+    public function getFormBuilderWithData(string $formName, object|array $data): \BagasTopati\UiCore\Builders\FormBuilder
+    {
+        $form = $this->getFormBuilder($formName);
+        return $form->bind($data);
+    }
 }

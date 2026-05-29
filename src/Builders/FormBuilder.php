@@ -19,6 +19,8 @@ class FormBuilder implements Renderable
     protected array $validationRules = [];
     protected array $validationMessages = [];
 
+    protected int $lastFieldIndex = -1;  // Track last added field for binding
+
     public function __construct(string $action = '#', string $method = 'POST')
     {
         $this->action = $action;
@@ -88,6 +90,9 @@ class FormBuilder implements Renderable
             'classes' => $options['classes'] ?? [],
             'id' => $options['id'] ?? $name,
         ], $options);
+
+        // Track index for binding support
+        $this->lastFieldIndex = count($this->fields) - 1;
 
         return $this;
     }
@@ -678,5 +683,266 @@ class FormBuilder implements Renderable
                 $attributes['pattern'] = $pattern;
             }
         }
+    }
+
+    /**
+     * Set value for the last added field (Fluent API binding)
+     *
+     * Usage: $form->text('name')->value('John')
+     */
+    public function value(mixed $value): static
+    {
+        if ($this->lastFieldIndex >= 0 && isset($this->fields[$this->lastFieldIndex])) {
+            $field = &$this->fields[$this->lastFieldIndex];
+
+            // Map value to correct field property based on type
+            match ($field['type']) {
+                'checkbox', 'radio' => $field['checked'] = $value,
+                'select' => $field['selected'] = $value,
+                default => $field['value'] = $value,
+            };
+        }
+        return $this;
+    }
+
+    /**
+     * Set selected value for select field (Fluent API)
+     */
+    public function selected(mixed $value): static
+    {
+        if ($this->lastFieldIndex >= 0 && isset($this->fields[$this->lastFieldIndex])) {
+            $this->fields[$this->lastFieldIndex]['selected'] = $value;
+        }
+        return $this;
+    }
+
+    /**
+     * Set checked for checkbox/radio field (Fluent API)
+     */
+    public function checked(mixed $value): static
+    {
+        if ($this->lastFieldIndex >= 0 && isset($this->fields[$this->lastFieldIndex])) {
+            $this->fields[$this->lastFieldIndex]['checked'] = $value;
+        }
+        return $this;
+    }
+
+    /**
+     * Bind form values from object/model
+     * Supports: Eloquent models, stdClass, any object with properties
+     * Also supports nested properties: 'user.profile.avatar'
+     *
+     * Usage:
+     *   $user = User::find(1);
+     *   $form->bind($user);
+     *
+     *   $form->bind(['name' => 'John']);
+     */
+    public function bind(object|array $data): static
+    {
+        if (is_array($data)) {
+            return $this->bindArray($data);
+        }
+        return $this->bindObject($data);
+    }
+
+    /**
+     * Bind form values from object/model
+     */
+    public function bindObject(object $model): static
+    {
+        foreach ($this->fields as $index => &$field) {
+            if (empty($field['name'])) {
+                continue;
+            }
+
+            $name = $field['name'];
+            // Support nested property notation: user.profile.avatar
+            $value = $this->getNestedValue($model, $name);
+
+            if ($value !== null) {
+                $this->setFieldValue($index, $value, $field['type']);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Bind form values from array
+     * Best for: associative arrays, request data
+     * Also supports nested arrays: 'user.profile.avatar'
+     */
+    public function bindArray(array $data): static
+    {
+        foreach ($this->fields as $index => &$field) {
+            if (empty($field['name'])) {
+                continue;
+            }
+
+            $name = $field['name'];
+
+            // Support nested array notation: user.profile.avatar
+            if (strpos($name, '.') !== false) {
+                $value = $this->getNestedArrayValue($data, $name);
+            } else {
+                $value = $data[$name] ?? null;
+            }
+
+            if ($value !== null) {
+                $this->setFieldValue($index, $value, $field['type']);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Get value from object using dot notation
+     * Supports: simple properties, nested objects, Eloquent relationships
+     * Examples: 'name', 'profile.avatar', 'author.name', 'company.address.city'
+     */
+    protected function getNestedValue(object $object, string $path): mixed
+    {
+        $parts = explode('.', $path);
+        $current = $object;
+
+        foreach ($parts as $part) {
+            if (is_null($current)) {
+                return null;
+            }
+
+            // Handle Eloquent models and relationships
+            if ($current instanceof \Illuminate\Database\Eloquent\Model) {
+                // Try as attribute first
+                if (isset($current[$part])) {
+                    $current = $current[$part];
+                    continue;
+                }
+
+                // Try as method (relationship)
+                if (method_exists($current, $part)) {
+                    $current = $current->{$part}();
+                    continue;
+                }
+
+                // Try as property
+                if (property_exists($current, $part)) {
+                    $current = $current->{$part};
+                    continue;
+                }
+            } elseif (is_object($current)) {
+                // Handle stdClass and regular objects
+                if (property_exists($current, $part)) {
+                    $current = $current->{$part};
+                } elseif (is_array($current) && isset($current[$part])) {
+                    $current = $current[$part];
+                } else {
+                    return null;
+                }
+            } elseif (is_array($current)) {
+                // Handle arrays
+                $current = $current[$part] ?? null;
+            } else {
+                return null;
+            }
+        }
+
+        return $current;
+    }
+
+    /**
+     * Get nested value from array using dot notation
+     */
+    protected function getNestedArrayValue(array $array, string $path): mixed
+    {
+        $parts = explode('.', $path);
+        $current = $array;
+
+        foreach ($parts as $part) {
+            if (is_array($current) && isset($current[$part])) {
+                $current = $current[$part];
+            } else {
+                return null;
+            }
+        }
+
+        return $current;
+    }
+
+    /**
+     * Helper to set field value correctly based on type
+     */
+    protected function setFieldValue(int $index, mixed $value, string $fieldType): void
+    {
+        // Format value if needed
+        if ($value !== null && $value !== '') {
+            $value = $this->formatValue($value);
+        }
+
+        match ($fieldType) {
+            'checkbox', 'radio' => $this->fields[$index]['checked'] = $value,
+            'select' => $this->fields[$index]['selected'] = $value,
+            default => $this->fields[$index]['value'] = $value,
+        };
+    }
+
+    /**
+     * Format values based on type (dates, currency, etc)
+     */
+    protected function formatValue(mixed $value): mixed
+    {
+        // Handle DateTime objects
+        if ($value instanceof \DateTime || (class_exists('\Carbon\Carbon') && $value instanceof \Carbon\Carbon)) {
+            $dateFormat = config('form-builder.binding.date_format', 'Y-m-d');
+            return $value->format($dateFormat);
+        }
+
+        // Handle numeric values (could be currency)
+        if (is_numeric($value) && config('form-builder.binding.format_currency', false)) {
+            return number_format($value, 2);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Get form data as JavaScript variable assignment
+     * Useful for pre-populating form via JavaScript
+     *
+     * Usage in Blade:
+     *   <script>
+     *     {!! $form->toJavaScriptVariables('formData') !!}
+     *   </script>
+     */
+    public function toJavaScriptVariables(string $varName = 'formData'): string
+    {
+        $data = [];
+
+        foreach ($this->fields as $field) {
+            if (empty($field['name'])) {
+                continue;
+            }
+
+            $value = match ($field['type']) {
+                'checkbox', 'radio' => $field['checked'] ?? null,
+                'select' => $field['selected'] ?? null,
+                default => $field['value'] ?? null,
+            };
+
+            if ($value !== null && $value !== '') {
+                $data[$field['name']] = $value;
+            }
+        }
+
+        $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        return "const {$varName} = {$json};";
+    }
+
+    /**
+     * Get form data as JavaScript object
+     * Alias for toJavaScriptVariables with default variable name
+     */
+    public function toJavaScriptObject(): string
+    {
+        return $this->toJavaScriptVariables('formData');
     }
 }

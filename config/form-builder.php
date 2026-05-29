@@ -58,6 +58,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Data Binding Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure binding-related settings for form fields.
+    |
+    */
+    'binding' => [
+        'auto_escape' => true,           // HTML escape bound values
+        'date_format' => 'Y-m-d',        // Format dates when binding
+        'format_currency' => false,      // Automatic currency formatting
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Form Configurations (Cara 2)
     |--------------------------------------------------------------------------
     |
