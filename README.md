@@ -4,14 +4,15 @@ A powerful and flexible Laravel package for creating HTML forms from array or JS
 
 ## Features
 
-- 🎨 **Multiple CSS Frameworks** - Bootstrap, Tailwind, or custom CSS frameworks
+- 🎨 **Multiple CSS Frameworks** - Bootstrap 4, Bootstrap 5, Tailwind, or custom CSS frameworks
 - 📋 **Array/JSON Configuration** - Define forms declaratively using arrays or JSON
 - 🔄 **Fluent API** - Chainable methods for easy form building
-- 🎯 **Form Fields** - Support for all standard HTML5 input types
+- 🎯 **Form Fields** - Support for all standard HTML5 input types (15+ types)
 - ✅ **Validation Integration** - Extract validation rules directly from field configuration
 - 🎪 **Field Grouping** - Organize fields with fieldsets and rows
 - 📦 **Zero Dependencies** - Only requires PHP 8.1+
 - 🔧 **Extensible** - Create custom field types easily
+- 🅱️ **Bootstrap Support** - Full support for Bootstrap 4 and Bootstrap 5
 
 ## Installation
 
@@ -278,11 +279,29 @@ $json = $form->toJson(JSON_PRETTY_PRINT);
 
 ## CSS Framework Switching
 
+FormBuilder supports multiple CSS frameworks with different Bootstrap versions!
+
+### Supported Frameworks
+
+- **bootstrap** - Bootstrap (default)
+- **bootstrap4** - Bootstrap 4.x
+- **bootstrap5** - Bootstrap 5.x
+- **tailwind** - Tailwind CSS
+- **default** - Generic CSS
+
 ### In Configuration
 
 ```php
 // config/form-builder.php
-'default_framework' => 'bootstrap', // or 'tailwind'
+'default_framework' => env('FORM_BUILDER_FRAMEWORK', 'bootstrap5'),
+
+'frameworks' => [
+    'bootstrap' => Bootstrap Framework::class,
+    'bootstrap4' => Bootstrap4Framework::class,
+    'bootstrap5' => Bootstrap5Framework::class,
+    'tailwind' => TailwindFramework::class,
+    'default' => DefaultFramework::class,
+]
 ```
 
 ### At Runtime
@@ -290,12 +309,24 @@ $json = $form->toJson(JSON_PRETTY_PRINT);
 ```php
 use BagasTopati\UiCore\UI;
 
-UI::useBootstrap();
-// or
-UI::useTailwind();
+// Use Bootstrap 4
+UI::setFramework(new \BagasTopati\UiCore\CssFrameworks\Bootstrap4Framework());
+
+// or Bootstrap 5
+UI::setFramework(new \BagasTopati\UiCore\CssFrameworks\Bootstrap5Framework());
+
+// or via environment variable
+UI::useBootstrap(); // Uses default framework
 
 $form = FormBuilder::fromArray($config);
 echo $form->render();
+```
+
+### Environment Variable
+
+```bash
+# .env
+FORM_BUILDER_FRAMEWORK=bootstrap5
 ```
 
 ## Real-World Example
@@ -371,6 +402,42 @@ $form = FormBuilder::fromArray($userFormConfig);
 // Extract validation rules
 $rules = $form->getValidationRules();
 ```
+
+## Bootstrap Version Differences
+
+FormBuilder automatically handles differences between Bootstrap 4 and Bootstrap 5:
+
+### Select Fields
+```php
+// Bootstrap 4: Uses custom-select class
+// Bootstrap 5: Uses form-select class (custom-select removed)
+```
+
+### Form Groups
+```php
+// Bootstrap 4: form-group class
+// Bootstrap 5: mb-3 utility class
+```
+
+### Form Labels
+```php
+// Bootstrap 4: form-control-label class
+// Bootstrap 5: form-label class
+```
+
+### Form Rows
+```php
+// Bootstrap 4: form-row for horizontal layouts
+// Bootstrap 5: row with g-3 gap utility
+```
+
+### CSS & JS Requirements
+```php
+// Bootstrap 4: Requires jQuery, Popper.js, Bootstrap JS
+// Bootstrap 5: Bootstrap bundle includes Popper.js (no jQuery needed)
+```
+
+The framework automatically includes the correct CDN links and styling classes!
 
 ## Creating Custom Field Types
 

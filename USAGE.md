@@ -372,16 +372,40 @@ FormBuilder mendukung semua Laravel validation rules:
 
 ## CSS Framework
 
-### Bootstrap
+### Bootstrap 4
 
 ```php
 use BagasTopati\UiCore\UI;
+use BagasTopati\UiCore\CssFrameworks\Bootstrap4Framework;
 
-UI::useBootstrap();
+UI::setFramework(new Bootstrap4Framework());
 
 $form = FormBuilder::fromArray($config);
 echo $form->render();
 ```
+
+**Bootstrap 4 Features:**
+- `form-group` dan `form-control-label` classes
+- `custom-select` untuk select fields
+- `form-row` untuk multi-column layouts
+- Requires jQuery dan Popper.js
+
+### Bootstrap 5
+
+```php
+use BagasTopati\UiCore\CssFrameworks\Bootstrap5Framework;
+
+UI::setFramework(new Bootstrap5Framework());
+
+$form = FormBuilder::fromArray($config);
+echo $form->render();
+```
+
+**Bootstrap 5 Features:**
+- `mb-3` utility classes untuk spacing
+- `form-label` dan `form-select` classes
+- `row` dan `g-3` untuk multi-column layouts
+- No jQuery dependency (Bootstrap bundle only)
 
 ### Tailwind
 

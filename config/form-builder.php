@@ -20,10 +20,13 @@ return [
     |--------------------------------------------------------------------------
     |
     | Register CSS framework implementations for form styling.
+    | Supported: 'bootstrap', 'bootstrap4', 'bootstrap5', 'tailwind', 'default'
     |
     */
     'frameworks' => [
         'bootstrap' => BagasTopati\UiCore\CssFrameworks\BootstrapFramework::class,
+        'bootstrap4' => BagasTopati\UiCore\CssFrameworks\Bootstrap4Framework::class,
+        'bootstrap5' => BagasTopati\UiCore\CssFrameworks\Bootstrap5Framework::class,
         'tailwind' => BagasTopati\UiCore\CssFrameworks\TailwindFramework::class,
         'default' => BagasTopati\UiCore\CssFrameworks\DefaultFramework::class,
     ],
