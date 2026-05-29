@@ -550,7 +550,8 @@ class TailwindFramework implements CssFramework
         if ($value === 'circle') return 'rounded-full';
         if ($value === 'pill') return 'rounded-full';
         if ($side && isset($sideMap[$side])) {
-            return "rounded-{$sideMap[$side]}-{$value ?: 'lg'}";
+            $radius = $value ?? 'lg';
+            return "rounded-{$sideMap[$side]}-{$radius}";
         }
         return $value ? "rounded-{$value}" : 'rounded';
     }
@@ -704,7 +705,8 @@ class TailwindFramework implements CssFramework
             $classes[] = 'bg-gray-50';
         }
         if ($disabled) {
-            $classes[] = 'opacity-50', 'pointer-events-none';
+            $classes[] = 'opacity-50';
+            $classes[] = 'pointer-events-none';
         }
         return $classes;
     }
