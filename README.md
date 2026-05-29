@@ -760,6 +760,172 @@ User::create($validated);
 
 For issues, questions, or suggestions, please open an issue on GitHub.
 
+## Data Binding (Form Population)
+
+### Overview
+
+FormBuilder provides powerful data binding support to pre-populate forms from models, objects, or arrays.
+
+### Fluent API Value() Method
+
+Set individual field values using method chaining:
+
+```php
+$form = FormBuilder::fromArray($config);
+
+$form->text('name')->value('John');
+$form->email('email')->value('john@example.com');
+$form->select('role')->selected('admin');
+$form->checkbox('agree')->checked(true);
+```
+
+### Bind from Object/Model
+
+Automatically populate form fields from an object or Eloquent model:
+
+```php
+// From Eloquent model
+$user = User::find(1);
+$form = FormBuilder::fromArray($config)->bind($user);
+
+// From stdClass or regular object
+$data = (object)['name' => 'John', 'email' => 'john@example.com'];
+$form = FormBuilder::fromArray($config)->bind($data);
+```
+
+### Bind from Array
+
+Populate form fields from an associative array:
+
+```php
+$data = [
+    'name' => 'John',
+    'email' => 'john@example.com',
+    'role' => 'admin'
+];
+
+$form = FormBuilder::fromArray($config)->bind($data);
+```
+
+### Nested Property Access
+
+FormBuilder supports nested property notation using dot notation:
+
+```php
+// Nested objects
+$form->bind($user); // Automatically binds user.profile.avatar if field name is 'user.profile.avatar'
+
+// Nested arrays
+$form->bind([
+    'user' => [
+        'profile' => [
+            'avatar' => 'avatar.jpg'
+        ]
+    ]
+]);
+
+// In field configuration
+'fields' => [
+    ['type' => 'text', 'name' => 'user.profile.name']  // Will access $user->profile->name
+]
+```
+
+### Eloquent Relationships
+
+FormBuilder automatically handles Eloquent relationships:
+
+```php
+$post = Post::find(1);
+$form = FormBuilder::fromArray([
+    'action' => '/posts/store',
+    'fields' => [
+        ['type' => 'text', 'name' => 'title'],
+        ['type' => 'text', 'name' => 'author.name']  // Accesses $post->author->name
+    ]
+])->bind($post);
+```
+
+### Automatic Date Formatting
+
+DateTime objects are automatically formatted:
+
+```php
+$config = ['form-builder.binding.date_format' => 'Y-m-d'];  // In config/form-builder.php
+
+$user = (object)['created_at' => new DateTime('2026-05-29')];
+$form = FormBuilder::fromArray($config)->bind($user);
+// Renders as: value="2026-05-29"
+```
+
+### JavaScript Pre-Population
+
+Export form data as JavaScript for client-side form population:
+
+```php
+$form = FormBuilder::fromArray($config)->bind($data);
+
+// In Blade view
+<script>
+    {!! $form->toJavaScriptVariables('formData') !!}
+    
+    // formData now contains the bound values
+    console.log(formData);
+</script>
+```
+
+Or use the default variable name:
+
+```php
+<script>
+    {!! $form->toJavaScriptObject() !!}
+    // Outputs: const formData = {...}
+</script>
+```
+
+### Real-World Example: Edit Form
+
+```php
+// Controller
+class ProductController extends Controller
+{
+    use HasFormConfiguration;
+
+    public function edit(Product $product)
+    {
+        // Get form and bind product data
+        $form = $this->getFormBuilderWithData('product_edit', $product);
+        return view('products.edit', compact('form', 'product'));
+    }
+
+    public function update(Request $request, Product $product)
+    {
+        $validated = $this->validateForm('product_edit', $request);
+        $product->update($validated);
+        return redirect()->route('products.show', $product);
+    }
+}
+
+// In view
+@extends('layouts.app')
+
+@section('content')
+    <h1>Edit Product</h1>
+    {!! $form->render() !!}
+@endsection
+```
+
+### Configuration
+
+Configure binding behavior in `config/form-builder.php`:
+
+```php
+'binding' => [
+    'auto_escape' => true,           // HTML escape bound values
+    'date_format' => 'Y-m-d',        // Date format for DateTime objects
+    'format_currency' => false,      // Automatic currency formatting
+],
+```
+
 ## Security Issues
 
 Found a security vulnerability? Please email bagas.topati@gmail.com with:
