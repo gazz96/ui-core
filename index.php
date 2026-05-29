@@ -3,6 +3,7 @@
 require 'vendor/autoload.php';
 
 use BagasTopati\UiCore\UI;
+use BagasTopati\UiCore\Builders\FormBuilder;
 
 UI::useBootstrap();
 
@@ -118,7 +119,7 @@ echo UI::page('Dashboard', [
         ->hoverable()
         ->responsive(),
 
-    UI::element('h2', 'Form Tambah Pengguna'),
+    UI::element('h2', 'Form Tambah Pengguna (Fluent API)'),
 
     UI::form('/users/save')
         ->row([
@@ -136,6 +137,65 @@ echo UI::page('Dashboard', [
         ->hidden('token', 'abc123')
         ->submit('Simpan Data')
         ->reset('Reset'),
+
+    UI::element('h2', 'Form dari Array Configuration (NEW)'),
+
+    FormBuilder::fromArray([
+        'action' => '/users/store',
+        'method' => 'POST',
+        'fields' => [
+            [
+                'type' => 'text',
+                'name' => 'name',
+                'label' => 'Full Name',
+                'placeholder' => 'Enter your full name',
+                'validation' => 'required|string|max:255'
+            ],
+            [
+                'type' => 'email',
+                'name' => 'email',
+                'label' => 'Email Address',
+                'placeholder' => 'your@example.com',
+                'validation' => 'required|email'
+            ],
+            [
+                'type' => 'select',
+                'name' => 'role',
+                'label' => 'Select Role',
+                'options' => [
+                    'admin' => 'Administrator',
+                    'editor' => 'Editor',
+                    'viewer' => 'Viewer'
+                ],
+                'default' => 'viewer',
+                'validation' => 'required|in:admin,editor,viewer'
+            ],
+            [
+                'type' => 'textarea',
+                'name' => 'bio',
+                'label' => 'Biography',
+                'rows' => 4,
+                'validation' => 'nullable|string|max:500'
+            ],
+            [
+                'type' => 'checkbox',
+                'name' => 'subscribe',
+                'label' => 'Notifications',
+                'checkbox_label' => 'Subscribe to email notifications',
+                'default' => true
+            ]
+        ],
+        'buttons' => [
+            [
+                'type' => 'submit',
+                'label' => 'Create User'
+            ],
+            [
+                'type' => 'reset',
+                'label' => 'Clear'
+            ]
+        ]
+    ]),
 
     UI::element('h2', 'Tabs Component'),
 

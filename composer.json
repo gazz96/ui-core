@@ -1,14 +1,33 @@
 {
-  "name": "bagastopati/ui-core",
-  "description": "Standalone PHP UI Builder",
+  "name": "bagastopati/form-builder",
+  "description": "Laravel Form Builder - Create forms from array or JSON configuration",
   "type": "library",
   "license": "MIT",
+  "authors": [
+    {
+      "name": "Bagas Topati",
+      "email": "bagas.topati@gmail.com"
+    }
+  ],
   "autoload": {
     "psr-4": {
-      "BagasTopati\\UiCore\\": "src/"
+      "BagasTopati\\UiCore\\": "src/",
+      "BagasTopati\\FormBuilder\\": "src/"
     }
   },
   "require": {
-    "php": ">=8.1"
+    "php": ">=8.1",
+    "illuminate/support": "^10.0|^11.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0",
+    "orchestra/testbench": "^8.0|^9.0"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "BagasTopati\\FormBuilder\\FormBuilderServiceProvider"
+      ]
+    }
   }
 }

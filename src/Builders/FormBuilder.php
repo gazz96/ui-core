@@ -16,9 +16,13 @@ class FormBuilder implements Renderable
     protected bool $multipart = false;
     protected string $fieldWrapper = 'div';
 
-    public function __construct(string $action = '#')
+    protected array $validationRules = [];
+    protected array $validationMessages = [];
+
+    public function __construct(string $action = '#', string $method = 'POST')
     {
         $this->action = $action;
+        $this->method = $method;
     }
 
     public function post(): static
@@ -434,5 +438,226 @@ class FormBuilder implements Renderable
     public function __toString(): string
     {
         return $this->render();
+    }
+
+    public static function fromArray(array $config): static
+    {
+        if (!isset($config['action'])) {
+            throw new \InvalidArgumentException('Form configuration must have an "action" property');
+        }
+
+        $action = $config['action'];
+        $method = strtoupper($config['method'] ?? 'POST');
+
+        $form = new static($action, $method);
+
+        if (!empty($config['attributes'])) {
+            foreach ($config['attributes'] as $key => $value) {
+                $form->attr($key, (string)$value);
+            }
+        }
+
+        if (!empty($config['fields'])) {
+            foreach ($config['fields'] as $fieldConfig) {
+                $form->parseFieldConfig($fieldConfig);
+            }
+        }
+
+        if (!empty($config['buttons'])) {
+            foreach ($config['buttons'] as $buttonConfig) {
+                $form->parseButtonConfig($buttonConfig);
+            }
+        }
+
+        return $form;
+    }
+
+    public static function fromJson(string $json): static
+    {
+        try {
+            $config = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            throw new \InvalidArgumentException('Invalid JSON configuration: ' . $e->getMessage());
+        }
+
+        if (!is_array($config)) {
+            throw new \InvalidArgumentException('JSON must decode to an array');
+        }
+
+        return static::fromArray($config);
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'action' => $this->action,
+            'method' => $this->method,
+            'attributes' => $this->formAttributes,
+            'fields' => $this->fields,
+        ];
+    }
+
+    public function toJson(int $options = 0): string
+    {
+        return json_encode($this->toArray(), JSON_UNESCAPED_SLASHES | $options);
+    }
+
+    public function getValidationRules(): array
+    {
+        return $this->validationRules;
+    }
+
+    public function getValidationMessages(): array
+    {
+        return $this->validationMessages;
+    }
+
+    protected function parseFieldConfig(array $fieldConfig): void
+    {
+        $type = $fieldConfig['type'] ?? 'text';
+        $name = $fieldConfig['name'] ?? null;
+
+        if (!$name) {
+            throw new \InvalidArgumentException('Field must have a "name" property');
+        }
+
+        $label = $fieldConfig['label'] ?? null;
+        $attributes = $fieldConfig['attributes'] ?? [];
+        $default = $fieldConfig['default'] ?? null;
+
+        // Store validation rules if provided
+        if (!empty($fieldConfig['validation'])) {
+            $this->validationRules[$name] = $fieldConfig['validation'];
+        }
+
+        // Add HTML5 required attribute if needed
+        if (!empty($fieldConfig['required'])) {
+            $attributes['required'] = true;
+        }
+
+        if (!empty($fieldConfig['placeholder'])) {
+            $attributes['placeholder'] = $fieldConfig['placeholder'];
+        }
+
+        // Add validation attributes
+        if (!empty($fieldConfig['validation'])) {
+            $this->addValidationAttributes($attributes, $fieldConfig['validation']);
+        }
+
+        match ($type) {
+            'text', 'email', 'password', 'number', 'tel', 'url', 'date', 'time', 'datetime', 'color', 'range', 'search', 'hidden'
+            => $this->{$type}($name, $label, array_merge($attributes, ['value' => $default])),
+
+            'textarea'
+            => $this->textarea($name, $label, array_merge($attributes, ['value' => $default])),
+
+            'select'
+            => $this->parseSelectField($fieldConfig),
+
+            'checkbox'
+            => $this->checkbox($name, $label, array_merge($attributes, ['checked' => (bool)$default])),
+
+            'radio'
+            => $this->parseRadioField($fieldConfig),
+
+            'file'
+            => $this->file($name, $label, $attributes),
+
+            'group'
+            => $this->parseGroupField($fieldConfig),
+
+            'row'
+            => $this->parseRowField($fieldConfig),
+
+            default => throw new \InvalidArgumentException("Unsupported field type: {$type}"),
+        };
+    }
+
+    protected function parseSelectField(array $fieldConfig): void
+    {
+        $name = $fieldConfig['name'];
+        $label = $fieldConfig['label'] ?? null;
+        $options = $fieldConfig['options'] ?? [];
+        $attributes = $fieldConfig['attributes'] ?? [];
+        $default = $fieldConfig['default'] ?? null;
+
+        if (isset($fieldConfig['placeholder'])) {
+            $attributes['placeholder'] = $fieldConfig['placeholder'];
+        }
+
+        $this->select($name, $options, $label, array_merge($attributes, ['selected' => $default]));
+    }
+
+    protected function parseRadioField(array $fieldConfig): void
+    {
+        $name = $fieldConfig['name'];
+        $label = $fieldConfig['label'] ?? null;
+        $options = $fieldConfig['options'] ?? [];
+        $attributes = $fieldConfig['attributes'] ?? [];
+        $default = $fieldConfig['default'] ?? null;
+
+        $this->radio($name, $options, $label, array_merge($attributes, ['checked' => $default]));
+    }
+
+    protected function parseGroupField(array $fieldConfig): void
+    {
+        $label = $fieldConfig['label'] ?? null;
+        $fields = $fieldConfig['fields'] ?? [];
+
+        $this->fields[] = [
+            'type' => 'group',
+            'label' => $label,
+            'fields' => $fields,
+        ];
+
+        foreach ($fields as $nestedField) {
+            $this->parseFieldConfig($nestedField);
+        }
+    }
+
+    protected function parseRowField(array $fieldConfig): void
+    {
+        $fields = $fieldConfig['fields'] ?? [];
+
+        $this->fields[] = [
+            'type' => 'row',
+            'fields' => $fields,
+        ];
+    }
+
+    protected function parseButtonConfig(array $buttonConfig): void
+    {
+        $type = $buttonConfig['type'] ?? 'submit';
+        $label = $buttonConfig['label'] ?? 'Submit';
+        $attributes = $buttonConfig['attributes'] ?? [];
+
+        match ($type) {
+            'submit' => $this->submit($label, $attributes),
+            'reset' => $this->reset($label, $attributes),
+            'button' => $this->button($label, 'button', $attributes),
+            default => throw new \InvalidArgumentException("Unsupported button type: {$type}"),
+        };
+    }
+
+    protected function addValidationAttributes(array &$attributes, string $rules): void
+    {
+        $ruleArray = explode('|', $rules);
+
+        foreach ($ruleArray as $rule) {
+            $rule = trim($rule);
+
+            if ($rule === 'required') {
+                $attributes['required'] = true;
+            } elseif (str_starts_with($rule, 'min:')) {
+                $min = substr($rule, 4);
+                $attributes['min'] = (int)$min;
+            } elseif (str_starts_with($rule, 'max:')) {
+                $max = substr($rule, 4);
+                $attributes['max'] = (int)$max;
+            } elseif (str_starts_with($rule, 'pattern:')) {
+                $pattern = substr($rule, 8);
+                $attributes['pattern'] = $pattern;
+            }
+        }
     }
 }

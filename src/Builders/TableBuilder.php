@@ -400,6 +400,37 @@ class TableBuilder implements Renderable
         return $data;
     }
 
+    protected function applyRequestParams(): void
+    {
+        if ($this->paginationEnabled && isset($_GET['page'])) {
+            $this->currentPage = max(1, (int)$_GET['page']);
+        }
+
+        if (!empty($this->sortableColumns)) {
+            if (isset($_GET['sort']) && ($this->sortableColumns === ['*'] || in_array($_GET['sort'], $this->sortableColumns))) {
+                $this->sortColumn = $_GET['sort'];
+            }
+            if (isset($_GET['direction']) && in_array(strtolower($_GET['direction']), ['asc', 'desc'])) {
+                $this->sortDirection = strtolower($_GET['direction']);
+            }
+        }
+
+        if ($this->globalSearch && isset($_GET['search'])) {
+            $this->globalSearchValue = $_GET['search'];
+        }
+
+        foreach (array_keys($this->filterDefs) as $key) {
+            $paramKey = 'filter_' . $key;
+            if (isset($_GET[$paramKey]) && $_GET[$paramKey] !== '') {
+                $this->filterValues[$key] = $_GET[$paramKey];
+            }
+        }
+
+        if ($this->showPerPageSelector && isset($_GET['per_page'])) {
+            $this->perPage = max(1, (int)$_GET['per_page']);
+        }
+    }
+
     protected function getProcessedData(): array
     {
         $data = $this->applyClientFilter();
@@ -427,6 +458,16 @@ class TableBuilder implements Renderable
         return max(1, (int)ceil($total / $this->perPage));
     }
 
+    protected function buildQueryString(array $overrides = []): string
+    {
+        $params = $_GET;
+        foreach ($overrides as $key => $value) {
+            $params[$key] = $value;
+        }
+        $params = array_filter($params, fn($v) => $v !== '' && $v !== null);
+        return '?' . http_build_query($params);
+    }
+
     protected function buildSortUrl(string $column): string
     {
         $direction = 'asc';
@@ -442,7 +483,7 @@ class TableBuilder implements Renderable
             );
         }
 
-        return "?sort={$column}&direction={$direction}";
+        return $this->buildQueryString(['sort' => $column, 'direction' => $direction, 'page' => 1]);
     }
 
     protected function renderSortIcon(string $column): string
@@ -469,6 +510,11 @@ class TableBuilder implements Renderable
             $html .= '<form method="GET" action="' . Renderer::escape($action) . '">';
         } else {
             $html .= '<form method="GET">';
+        }
+
+        if ($this->sortColumn) {
+            $html .= '<input type="hidden" name="sort" value="' . Renderer::escape($this->sortColumn) . '">';
+            $html .= '<input type="hidden" name="direction" value="' . Renderer::escape($this->sortDirection) . '">';
         }
 
         $html .= '<div class="row g-2 align-items-end">';
@@ -543,15 +589,9 @@ class TableBuilder implements Renderable
             $html .= '<label class="text-muted small">Per halaman:</label>';
             $html .= '<select class="form-select form-select-sm" style="width:auto" onchange="window.location.href=this.value">';
 
-            $currentUrl = $this->paginationUrlTemplate
-                ? str_replace('{page}', (string)$this->currentPage, $this->paginationUrlTemplate)
-                : '?page=' . $this->currentPage;
-
             foreach ($this->perPageOptions as $opt) {
                 $selected = $opt === $this->perPage ? ' selected' : '';
-                $url = $this->paginationUrlTemplate
-                    ? str_replace(['{page}', '{perPage}'], [(string)$this->currentPage, (string)$opt], $this->paginationUrlTemplate)
-                    : '?page=' . $this->currentPage . '&per_page=' . $opt;
+                $url = $this->buildQueryString(['page' => 1, 'per_page' => $opt]);
                 $html .= '<option value="' . Renderer::escape($url) . '"' . $selected . '>' . $opt . '</option>';
             }
 
@@ -578,9 +618,12 @@ class TableBuilder implements Renderable
         $pagination = new PaginationBuilder($this->currentPage, $totalPages);
         $pagination->showArrows()->showFirstLast();
 
-        if ($this->paginationUrlTemplate) {
-            $pagination->baseUrl($this->paginationUrlTemplate);
-        }
+        $params = $_GET;
+        unset($params['page']);
+        $params = array_filter($params, fn($v) => $v !== '' && $v !== null);
+        $query = http_build_query($params);
+        $baseUrl = '?' . ($query ? $query . '&' : '') . 'page={page}';
+        $pagination->baseUrl($baseUrl);
 
         $html = '<div class="d-flex justify-content-center mt-3">';
         $html .= $pagination->render();
@@ -591,6 +634,8 @@ class TableBuilder implements Renderable
 
     public function render(): string
     {
+        $this->applyRequestParams();
+
         $fw = UI::framework();
         $columns = $this->resolveColumns();
         $colCount = count($columns) + ($this->actions ? 1 : 0);
