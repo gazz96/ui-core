@@ -73,6 +73,77 @@ class FormBuilderFactory
         };
     }
 
+    /**
+     * Create FormBuilder from Laravel config
+     *
+     * This method retrieves form configuration from config/form-builder.php
+     * and creates a FormBuilder instance (Cara 2 - Config approach).
+     *
+     * Usage:
+     * ```php
+     * $form = form_builder()->fromConfig('user_registration');
+     *
+     * // In controller
+     * public function create()
+     * {
+     *     $form = form_builder()->fromConfig('user_registration');
+     *     return view('forms.create', compact('form'));
+     * }
+     * ```
+     *
+     * @param string $formName The form name as defined in config/form-builder.php forms section
+     * @return FormBuilder The FormBuilder instance
+     *
+     * @throws \InvalidArgumentException If form configuration is not found
+     */
+    public function fromConfig(string $formName): FormBuilder
+    {
+        $config = $this->app['config']->get("form-builder.forms.{$formName}");
+
+        if (!$config) {
+            throw new InvalidArgumentException(
+                "Form configuration '{$formName}' not found in config/form-builder.php. " .
+                "Available forms: " . implode(', ', array_keys($this->app['config']->get('form-builder.forms', [])))
+            );
+        }
+
+        return $this->fromArray($config);
+    }
+
+    /**
+     * Get all available form names from config
+     *
+     * Usage:
+     * ```php
+     * $formNames = form_builder()->getAvailableForms();
+     * // Returns: ['user_registration', 'contact_form', 'product_form']
+     * ```
+     *
+     * @return array List of all form names available in config
+     */
+    public function getAvailableForms(): array
+    {
+        return array_keys($this->app['config']->get('form-builder.forms', []));
+    }
+
+    /**
+     * Check if a form configuration exists
+     *
+     * Usage:
+     * ```php
+     * if (form_builder()->hasForm('user_registration')) {
+     *     // Form exists
+     * }
+     * ```
+     *
+     * @param string $formName The form name
+     * @return bool True if form exists, false otherwise
+     */
+    public function hasForm(string $formName): bool
+    {
+        return !is_null($this->app['config']->get("form-builder.forms.{$formName}"));
+    }
+
     protected function parseFields(FormBuilder $form, array $fieldsConfig): void
     {
         foreach ($fieldsConfig as $fieldConfig) {

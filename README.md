@@ -531,6 +531,239 @@ MIT License - see LICENSE file for details
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+## Configuration-Based Forms (Cara 2 & 3)
+
+### Problem
+
+Form definitions and validation rules are often separated in Laravel controllers:
+
+```php
+public function create()  // Display form
+{
+    $form = FormBuilder::fromArray($config);
+    return view('form', compact('form'));
+}
+
+public function store(Request $request)  // Handle submission
+{
+    $validated = $request->validate($rules);
+    // Form and validation are disconnected!
+}
+```
+
+### Solution: Store Forms in Config
+
+Define your forms in `config/form-builder.php` and access them from both methods.
+
+#### Step 1: Define Form in Config
+
+```php
+// config/form-builder.php
+'forms' => [
+    'user_registration' => [
+        'action' => '/users/store',
+        'method' => 'POST',
+        'fields' => [
+            [
+                'type' => 'text',
+                'name' => 'name',
+                'label' => 'Full Name',
+                'validation' => 'required|string|max:255'
+            ],
+            [
+                'type' => 'email',
+                'name' => 'email',
+                'label' => 'Email',
+                'validation' => 'required|email|unique:users'
+            ],
+            [
+                'type' => 'password',
+                'name' => 'password',
+                'label' => 'Password',
+                'validation' => 'required|min:8|confirmed'
+            ],
+            [
+                'type' => 'password',
+                'name' => 'password_confirmation',
+                'label' => 'Confirm Password'
+            ]
+        ],
+        'buttons' => [
+            ['type' => 'submit', 'label' => 'Register']
+        ]
+    ]
+]
+```
+
+#### Step 2: Use Trait in Controller (Recommended)
+
+```php
+use BagasTopati\FormBuilder\Traits\HasFormConfiguration;
+
+class UserController extends Controller
+{
+    use HasFormConfiguration;
+
+    public function create()
+    {
+        $form = $this->getFormBuilder('user_registration');
+        return view('users.create', compact('form'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $this->validateForm('user_registration', $request);
+        User::create($validated);
+        return redirect()->route('users.show', $validated);
+    }
+}
+```
+
+#### Available Trait Methods
+
+```php
+$this->getFormBuilder($formName)              // Get FormBuilder instance
+$this->validateForm($formName, $request)      // Validate request with form rules
+$this->getFormValidationRules($formName)      // Get validation rules only
+$this->getFormValidationMessages($formName)   // Get validation messages
+$this->hasForm($formName)                     // Check if form exists
+$this->getAllFormNames()                      // List all registered forms
+$this->getFormConfiguration($formName)        // Get raw config array
+```
+
+### Alternative: Without Trait
+
+```php
+public function create()
+{
+    $config = config('form-builder.forms.user_registration');
+    $form = FormBuilder::fromArray($config);
+    return view('users.create', compact('form'));
+}
+
+public function store(Request $request)
+{
+    $config = config('form-builder.forms.user_registration');
+    $form = FormBuilder::fromArray($config);
+    $rules = $form->getValidationRules();
+    $validated = $request->validate($rules);
+}
+```
+
+### Benefits
+
+✅ Form and validation in **one place**  
+✅ No **duplication** between methods  
+✅ Changes to form **automatically update** validation  
+✅ **DRY principle** - less code  
+✅ **Cleaner, more readable** controller code  
+
+## Validation Integration
+
+### 3-Layer Validation
+
+FormBuilder supports three levels of validation:
+
+1. **HTML5 Validation** (Browser) - Real-time user feedback
+2. **Server-side (Laravel Validator)** - Secure backend validation
+3. **Custom Logic** (Optional) - Business-specific validation
+
+### Extracting Validation Rules
+
+```php
+$form = FormBuilder::fromArray($config);
+$rules = $form->getValidationRules();
+
+// Result: ['name' => 'required|string|max:255', 'email' => 'required|email']
+
+// Use with Laravel validator
+$validated = $request->validate($rules);
+
+// Or with custom messages
+$messages = [
+    'name.required' => 'Please enter your name',
+    'email.email' => 'Please enter a valid email'
+];
+$validated = $request->validate($rules, $messages);
+```
+
+### Supported Validation Rules
+
+- `required` - Field is required
+- `nullable` - Field is optional
+- `string` - Must be string
+- `email` - Must be valid email
+- `unique:table[,column]` - Must be unique in database
+- `min:5` - Minimum length (5 chars)
+- `max:255` - Maximum length (255 chars)
+- `confirmed` - Must match field_confirmation
+- `regex:/pattern/` - Custom regex pattern
+- `in:value1,value2` - Must be one of values
+- `before:date`, `after:date` - Date validation
+- `image`, `file`, `mimes:jpg,png` - File validation
+- ... and all standard Laravel validation rules
+
+### HTML5 Attributes
+
+Validation rules are automatically converted to HTML5 attributes:
+
+```php
+'validation' => 'required|email|max:255'
+
+// Generates:
+// <input type="email" required maxlength="255">
+```
+
+## Security
+
+### XSS Prevention
+
+All output is automatically HTML-escaped to prevent XSS attacks:
+
+```php
+$form = FormBuilder::fromArray($config);
+echo $form->render(); // Safe - output is escaped
+```
+
+### CSRF Protection
+
+Always use Laravel CSRF token in your forms:
+
+```blade
+<form method="POST" action="/submit">
+    @csrf
+    {!! $form->render() !!}
+</form>
+```
+
+### SQL Injection Prevention
+
+Always validate and use parameterized queries:
+
+```php
+$rules = $form->getValidationRules();
+$validated = $request->validate($rules);
+
+// Safe - use validated data with Eloquent
+User::create($validated);
+```
+
+### Best Practices
+
+1. **Always validate on backend** - Never trust client-side only
+2. **Use HTTPS** - Ensure forms submitted over secure connection
+3. **Keep dependencies updated** - Update Laravel and dependencies regularly
+4. **Use environment variables** - Never hardcode sensitive data
+5. **Sanitize output** - FormBuilder escapes output automatically
+
 ## Support
 
 For issues, questions, or suggestions, please open an issue on GitHub.
+
+## Security Issues
+
+Found a security vulnerability? Please email bagas.topati@gmail.com with:
+- Description of the vulnerability
+- Steps to reproduce
+- Potential impact
+- Suggested fix

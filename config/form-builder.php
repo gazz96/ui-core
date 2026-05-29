@@ -55,4 +55,55 @@ return [
     'validation' => [
         'include_html5_validation' => true,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Form Configurations (Cara 2)
+    |--------------------------------------------------------------------------
+    |
+    | Define form configurations here. Each form configuration is an array
+    | that can be used with FormBuilder::fromArray() or the HasFormConfiguration trait.
+    |
+    | Usage in Controller:
+    | - Using config directly:     $form = FormBuilder::fromArray(config('form-builder.forms.user_registration'));
+    | - Using trait method:        $form = $this->getFormBuilder('user_registration');
+    |
+    | Structure:
+    | 'form_name' => [
+    |     'action' => '/route',
+    |     'method' => 'POST',
+    |     'fields' => [...],
+    |     'buttons' => [...]
+    | ]
+    |
+    */
+    'forms' => [
+        // 'user_registration' => [
+        //     'action' => '/users/store',
+        //     'method' => 'POST',
+        //     'fields' => [
+        //         [
+        //             'type' => 'text',
+        //             'name' => 'name',
+        //             'label' => 'Full Name',
+        //             'validation' => 'required|string|max:255'
+        //         ],
+        //         [
+        //             'type' => 'email',
+        //             'name' => 'email',
+        //             'label' => 'Email',
+        //             'validation' => 'required|email|unique:users'
+        //         ],
+        //         [
+        //             'type' => 'password',
+        //             'name' => 'password',
+        //             'label' => 'Password',
+        //             'validation' => 'required|min:8|confirmed'
+        //         ],
+        //     ],
+        //     'buttons' => [
+        //         ['type' => 'submit', 'label' => 'Register'],
+        //     ]
+        // ]
+    ],
 ];
