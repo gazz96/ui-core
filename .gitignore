@@ -1,0 +1,30 @@
+# Dependencies
+/vendor/
+/node_modules/
+composer.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+.editorconfig
+
+# Testing
+/.phpunit.result.cache
+/coverage/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Project specific
+index.php
+demo/

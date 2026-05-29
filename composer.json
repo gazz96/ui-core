@@ -1,20 +1,24 @@
 {
   "name": "bagastopati/form-builder",
-  "description": "Laravel Form Builder - Create forms from array or JSON configuration",
+  "description": "A powerful Laravel form builder that allows you to create forms from array or JSON configuration with support for multiple CSS frameworks (Bootstrap 4, Bootstrap 5, Tailwind CSS)",
   "type": "library",
   "license": "MIT",
+  "keywords": [
+    "laravel",
+    "form",
+    "form-builder",
+    "bootstrap",
+    "tailwind",
+    "html-form"
+  ],
+  "homepage": "https://github.com/bagastopati/form-builder",
   "authors": [
     {
       "name": "Bagas Topati",
-      "email": "bagas.topati@gmail.com"
+      "email": "bagas.topati@gmail.com",
+      "homepage": "https://bagastopati.com"
     }
   ],
-  "autoload": {
-    "psr-4": {
-      "BagasTopati\\UiCore\\": "src/",
-      "BagasTopati\\FormBuilder\\": "src/"
-    }
-  },
   "require": {
     "php": ">=8.1",
     "illuminate/support": "^10.0|^11.0"
@@ -23,11 +27,26 @@
     "phpunit/phpunit": "^10.0",
     "orchestra/testbench": "^8.0|^9.0"
   },
+  "autoload": {
+    "psr-4": {
+      "BagasTopati\\UiCore\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "BagasTopati\\UiCore\\Tests\\": "tests/"
+    }
+  },
   "extra": {
     "laravel": {
       "providers": [
-        "BagasTopati\\FormBuilder\\FormBuilderServiceProvider"
+        "BagasTopati\\UiCore\\FormBuilderServiceProvider"
       ]
     }
-  }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
