@@ -515,6 +515,13 @@ class FormBuilder implements Renderable
     protected function parseFieldConfig(array $fieldConfig): void
     {
         $type = $fieldConfig['type'] ?? 'text';
+
+        // Container types (row, group) don't require a name property
+        if (in_array($type, ['row', 'group'])) {
+            $this->parseContainerField($fieldConfig);
+            return;
+        }
+
         $name = $fieldConfig['name'] ?? null;
 
         if (!$name) {
@@ -571,6 +578,17 @@ class FormBuilder implements Renderable
 
             default => throw new \InvalidArgumentException("Unsupported field type: {$type}"),
         };
+    }
+
+    protected function parseContainerField(array $fieldConfig): void
+    {
+        $type = $fieldConfig['type'];
+
+        if ($type === 'group') {
+            $this->parseGroupField($fieldConfig);
+        } elseif ($type === 'row') {
+            $this->parseRowField($fieldConfig);
+        }
     }
 
     protected function parseSelectField(array $fieldConfig): void
